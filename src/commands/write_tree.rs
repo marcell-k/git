@@ -1,5 +1,6 @@
 use crate::objects::{Kind, Object};
 use anyhow::Context;
+use ignore::gitignore::Gitignore;
 use std::fs;
 use std::io::Cursor;
 use std::os::unix::fs::PermissionsExt;
@@ -32,12 +33,20 @@ fn sort_key_for(name: &std::ffi::OsStr, is_dir: bool) -> Vec<u8> {
 }
 
 pub(crate) fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
+    let (gitignore, _err) = Gitignore::new(Path::new(".gitignore"));
     let dir = fs::read_dir(path).with_context(|| format!("open directory {}", path.display()))?;
 
     let mut entries = Vec::new();
     for entry in dir {
         let entry = entry.with_context(|| format!("bad directory entry in {}", path.display()))?;
-        if entry.file_name() == ".git" {
+        if entry.file_name() == ".git" || entry.file_name() == "target" {
+            continue;
+        }
+        let meta_for_match = entry.metadata().context("metadata for directory entry")?;
+        if gitignore
+            .matched(entry.path(), meta_for_match.is_dir())
+            .is_ignore()
+        {
             continue;
         }
         let meta = entry.metadata().context("metadata for directory entry")?;
