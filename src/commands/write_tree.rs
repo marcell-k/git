@@ -31,7 +31,7 @@ fn sort_key_for(name: &std::ffi::OsStr, is_dir: bool) -> Vec<u8> {
     key
 }
 
-fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
+pub(crate) fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
     let dir = fs::read_dir(path).with_context(|| format!("open directory {}", path.display()))?;
 
     let mut entries = Vec::new();
