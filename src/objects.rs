@@ -102,7 +102,7 @@ where
     }
 
     pub(crate) fn write_to_objects(self) -> anyhow::Result<[u8; 20]> {
-        let tmp = "temporary";
+        let tmp = ".git/tmp_object";
         let hash = self
             .write(std::fs::File::create(tmp).context("construct temporary file for tree")?)
             .context("stream tree object into tree object file")?;

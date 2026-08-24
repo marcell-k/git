@@ -34,6 +34,10 @@ fn sort_key_for(name: &std::ffi::OsStr, is_dir: bool) -> Vec<u8> {
 
 pub(crate) fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
     let (gitignore, _err) = Gitignore::new(Path::new(".gitignore"));
+    write_tree_inner(path, &gitignore)
+}
+
+fn write_tree_inner(path: &Path, gitignore: &Gitignore) -> anyhow::Result<Option<[u8; 20]>> {
     let dir = fs::read_dir(path).with_context(|| format!("open directory {}", path.display()))?;
 
     let mut entries = Vec::new();
@@ -50,6 +54,9 @@ pub(crate) fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
             continue;
         }
         let meta = entry.metadata().context("metadata for directory entry")?;
+        if gitignore.matched(entry.path(), meta.is_dir()).is_ignore() {
+            continue;
+        }
         let sort_key = sort_key_for(&entry.file_name(), meta.is_dir());
         entries.push(DirEntry {
             entry,
@@ -63,7 +70,7 @@ pub(crate) fn write_tree_for(path: &Path) -> anyhow::Result<Option<[u8; 20]>> {
     for DirEntry { entry, meta, .. } in entries {
         let path = entry.path();
         let hash = if meta.is_dir() {
-            let Some(hash) = write_tree_for(&path)? else {
+            let Some(hash) = write_tree_inner(&path, gitignore)? else {
                 continue;
             };
             hash

@@ -11,16 +11,10 @@ pub(crate) fn write_commit(
     let mut commit = String::new();
     writeln!(commit, "tree {tree_hash}")?;
     if let Some(parent_hash) = parent_hash {
-        writeln!(commit, "parent_hash {parent_hash}")?
+        writeln!(commit, "parent {parent_hash}")?
     }
-    writeln!(
-        commit,
-        "author Jon Gjengset <jon@thesquareplanet.com> 1709990458 +0100"
-    )?;
-    writeln!(
-        commit,
-        "committer Jon Gjengset <jon@thesquareplanet.com> 1709990458 +0100"
-    )?;
+    writeln!(commit, "author ....")?;
+    writeln!(commit, "committer ....")?;
     writeln!(commit)?;
     writeln!(commit, "{message}")?;
     Object {
