@@ -15,23 +15,30 @@ struct Args {
 enum Command {
     Init,
     CatFile {
-        #[clap(short = 'p')]
+        #[arg(short = 'p')]
         pretty_print: bool,
 
         object_hash: String,
     },
     HashObject {
-        #[clap(short = 'w')]
+        #[arg(short = 'w')]
         write: bool,
 
         file: PathBuf,
     },
     LsTree {
-        #[clap(long)]
+        #[arg(long)]
         name_only: bool,
         tree_hash: String,
     },
     WriteTree,
+    CommitTree {
+        #[arg(short)]
+        message: String,
+        tree_hash: String,
+        #[arg(short)]
+        parent_hash: Option<String>,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -49,6 +56,11 @@ fn main() -> anyhow::Result<()> {
             tree_hash,
         } => commands::ls_tree::invoke(name_only, &tree_hash)?,
         Command::WriteTree => commands::write_tree::invoke()?,
+        Command::CommitTree {
+            message,
+            tree_hash,
+            parent_hash,
+        } => commands::commit_tree::invoke(message, tree_hash, parent_hash)?,
     }
 
     Ok(())
